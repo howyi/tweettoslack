@@ -11,4 +11,4 @@ It's free because it's all within the AWS free tier.
 - Click the `DEPLOY TO AMPLIFY CONSOLE` button.
 - After deploy, access to Lambda `tweettoslack-amplify`. and set environment variables.
 # Diagram
-![](https://cdn-ak.f.st-hatena.com/images/fotolife/h/howyi/20190816/20190816111233.png)
+![](https://cdn-ak.f.st-hatena.com/images/fotolife/h/howyi/20190820/20190820004315.png)
