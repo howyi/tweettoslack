@@ -1,0 +1,283 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Lambda resource stack creation using Amplify CLI",
+	"Parameters": {
+		"env": {
+			"Type": "String"
+		}
+	},
+	"Conditions": {
+		"ShouldNotCreateEnvResources": {
+			"Fn::Equals": [
+				{
+					"Ref": "env"
+				},
+				"NONE"
+			]
+		}
+	},
+	"Resources": {
+		"LambdaFunction": {
+			"Type": "AWS::Lambda::Function",
+			"Metadata": {
+				"aws:asset:path": "./src",
+				"aws:asset:property": "Code"
+			},
+			"Properties": {
+				"Handler": "index.handler",
+				"FunctionName": {
+					"Fn::If": [
+						"ShouldNotCreateEnvResources",
+						"tweettoslack",
+						{
+							"Fn::Join": [
+								"",
+								[
+									"tweettoslack",
+									"-",
+									{
+										"Ref": "env"
+									}
+								]
+							]
+						}
+					]
+				},
+				"Environment": {
+					"Variables": {
+						"ENV": {
+							"Ref": "env"
+						},
+						"REGION": {
+							"Ref": "AWS::Region"
+						},
+						"SEARCH_QUERY": "####",
+						"SLACK_WEBHOOK_URL": "####",
+						"TWITTER_CONSUMER_KEY": "####",
+						"TWITTER_CONSUMER_SECRET": "####",
+						"TWITTER_ACCESS_TOKEN_KEY": "####",
+						"TWITTER_ACCESS_TOKEN_SECRET": "####"
+					}
+				},
+				"Role": {
+					"Fn::GetAtt": [
+						"LambdaExecutionRole",
+						"Arn"
+					]
+				},
+				"Runtime": "nodejs10.x",
+				"Timeout": "25",
+				"Code": {
+					"S3Bucket": "tweettoslack-howyi-20190819134504-deployment",
+					"S3Key": "amplify-builds/tweettoslack-506e795a756f774e712b-build.zip"
+				}
+			}
+		},
+		"LambdaExecutionRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"RoleName": {
+					"Fn::If": [
+						"ShouldNotCreateEnvResources",
+						"tweettoslackLambdaRoleeee3aa78",
+						{
+							"Fn::Join": [
+								"",
+								[
+									"tweettoslackLambdaRoleeee3aa78",
+									"-",
+									{
+										"Ref": "env"
+									}
+								]
+							]
+						}
+					]
+				},
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Principal": {
+								"Service": [
+									"lambda.amazonaws.com"
+								]
+							},
+							"Action": [
+								"sts:AssumeRole"
+							]
+						}
+					]
+				}
+			}
+		},
+		"lambdaexecutionpolicy": {
+			"DependsOn": [
+				"LambdaExecutionRole"
+			],
+			"Type": "AWS::IAM::Policy",
+			"Properties": {
+				"PolicyName": "lambda-execution-policy",
+				"Roles": [
+					{
+						"Ref": "LambdaExecutionRole"
+					}
+				],
+				"PolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Action": [
+								"logs:CreateLogGroup",
+								"logs:CreateLogStream",
+								"logs:PutLogEvents"
+							],
+							"Resource": {
+								"Fn::Sub": [
+									"arn:aws:logs:${region}:${account}:log-group:/aws/lambda/${lambda}:log-stream:*",
+									{
+										"region": {
+											"Ref": "AWS::Region"
+										},
+										"account": {
+											"Ref": "AWS::AccountId"
+										},
+										"lambda": {
+											"Ref": "LambdaFunction"
+										}
+									}
+								]
+							}
+						},
+						{
+							"Effect": "Allow",
+							"Action": [
+								"s3:GetObject",
+								"s3:PutObject"
+							],
+							"Resource": [
+								{
+									"Fn::Sub": [
+										"arn:aws:s3:::${bucket}/*",
+										{
+											"bucket": {
+												"Fn::If": [
+													"ShouldNotCreateEnvResources",
+													"tweettoslack",
+													{
+														"Fn::Join": [
+															"",
+															[
+																"tweettoslack",
+																"-",
+																{
+																	"Ref": "env"
+																}
+															]
+														]
+													}
+												]
+											}
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		"LambdaScheduleEvent": {
+			"Type": "AWS::Events::Rule",
+			"Properties": {
+				"Description": "Scheduled events",
+				"ScheduleExpression": "rate(1 minute)",
+				"State": "ENABLED",
+				"Targets": [
+					{
+						"Arn": {
+							"Fn::GetAtt": [
+								"LambdaFunction",
+								"Arn"
+							]
+						},
+						"Id": "ScheduleEvent1Target"
+					}
+				]
+			}
+		},
+		"LambdaInvokePermission": {
+			"Type": "AWS::Lambda::Permission",
+			"Properties": {
+				"Action": "lambda:InvokeFunction",
+				"FunctionName": {
+					"Ref": "LambdaFunction"
+				},
+				"Principal": "events.amazonaws.com",
+				"SourceArn": {
+					"Fn::GetAtt": [
+						"LambdaScheduleEvent",
+						"Arn"
+					]
+				}
+			}
+		},
+		"dataStorage": {
+			"Type": "AWS::S3::Bucket",
+			"Properties": {
+				"BucketName": {
+					"Fn::If": [
+						"ShouldNotCreateEnvResources",
+						"tweettoslack",
+						{
+							"Fn::Join": [
+								"",
+								[
+									"tweettoslack",
+									"-",
+									{
+										"Ref": "env"
+									}
+								]
+							]
+						}
+					]
+				},
+				"AccessControl": "Private",
+				"PublicAccessBlockConfiguration": {
+					"BlockPublicAcls": "True",
+					"BlockPublicPolicy": "True",
+					"IgnorePublicAcls": "True",
+					"RestrictPublicBuckets": "True"
+				}
+			}
+		}
+	},
+	"Outputs": {
+		"Name": {
+			"Value": {
+				"Ref": "LambdaFunction"
+			}
+		},
+		"Arn": {
+			"Value": {
+				"Fn::GetAtt": [
+					"LambdaFunction",
+					"Arn"
+				]
+			}
+		},
+		"Region": {
+			"Value": {
+				"Ref": "AWS::Region"
+			}
+		},
+		"LambdaExecutionRole": {
+			"Value": {
+				"Ref": "LambdaExecutionRole"
+			}
+		}
+	}
+}
