@@ -1,6 +1,6 @@
 Search Twitter and send results to Slack automatically.  
 Work on your AWS.
-# Deploy from Amplify Console
+
 [![amplifybutton](https://oneclick.amplifyapp.com/button.svg)](https://console.aws.amazon.com/amplify/home#/deploy?repo=https://github.com/howyi/tweettoslack)  
 # Cost
 It's free because it's all within the AWS free tier.
