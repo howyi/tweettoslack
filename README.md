@@ -3,7 +3,7 @@ Work on your AWS.
 
 [![amplifybutton](https://oneclick.amplifyapp.com/button.svg)](https://console.aws.amazon.com/amplify/home#/deploy?repo=https://github.com/howyi/tweettoslack)  
 # Cost
-It's free because it's all within the AWS free tier.
+It's free because it's all within the [AWS Free Tier](https://aws.amazon.com/free/).
 # Requirements
 - [Slack Incoming Webhook URL](https://api.slack.com/incoming-webhooks)
   - SLACK_WEBHOOK_URL
