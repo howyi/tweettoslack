@@ -41,7 +41,7 @@ exports.handler = async function (event, context) { //eslint-disable-line
   }
 
   let param = {
-    q: process.env.SEARCH_QUERY + ' exclude:retweets'
+    q: process.env.SEARCH_QUERY
   };
 
   try {
@@ -64,24 +64,28 @@ exports.handler = async function (event, context) { //eslint-disable-line
 
   let nextSinceId;
   for (let tweet of result.statuses) {
-    let expanded_text = tweet.text;
-
-    if (tweet.extended_entities) {
-      for (let media of tweet.extended_entities.media) {
-        expanded_text = expanded_text.replace(
-            media.url,
-            media.media_url_https,
-        )
-      }
-    }
-
-    await webhook.send({
-      text:  expanded_text,
+    let payload = {
       username: tweet.user.name,
       icon_url: tweet.user.profile_image_url_https,
       unfurl_links: true,
-      unfurl_media: true,
-    });
+      unfurl_media: true
+    };
+
+    if (tweet.retweeted_status) {
+      payload.text = '';
+      payload.attachments = [{
+        author_name: tweet.retweeted_status.user.name,
+        author_icon: tweet.retweeted_status.user.profile_image_url_https,
+        text: parseTweetText(tweet.retweeted_status),
+        color: 'good',
+      }];
+    } else if (tweet.quoted_status) {
+      payload.text = parseTweetText(tweet);
+    } else {
+      payload.text = parseTweetText(tweet);
+    }
+
+    await webhook.send(payload);
 
     if ((!nextSinceId) || (nextSinceId <= tweet.id_str)) {
       nextSinceId = tweet.id_str;
@@ -98,3 +102,18 @@ exports.handler = async function (event, context) { //eslint-disable-line
     }).promise();
   }
 };
+
+function parseTweetText(tweet) {
+  let expanded_text = tweet.text;
+
+  if (tweet.extended_entities) {
+    for (let media of tweet.extended_entities.media) {
+      expanded_text = expanded_text.replace(
+          media.url,
+          media.media_url_https,
+      )
+    }
+  }
+
+  return expanded_text;
+}

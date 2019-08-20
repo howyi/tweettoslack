@@ -69,7 +69,7 @@
 				"Timeout": "25",
 				"Code": {
 					"S3Bucket": "tweettoslack-howyi-20190819134504-deployment",
-					"S3Key": "amplify-builds/tweettoslack-506e795a756f774e712b-build.zip"
+					"S3Key": "amplify-builds/tweettoslack-74364c73316648744954-build.zip"
 				}
 			}
 		},
