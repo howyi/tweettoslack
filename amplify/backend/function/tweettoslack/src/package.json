@@ -6,7 +6,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@slack/webhook": "^5.0.1",
-    "aws-sdk": "^2.504.0",
+    "aws-sdk": "^2.814.0",
     "twitter": "^1.7.1"
   }
 }
